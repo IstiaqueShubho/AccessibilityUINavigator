@@ -9,7 +9,6 @@ import android.os.HandlerThread
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
-import android.widget.Button
 import java.util.concurrent.ConcurrentLinkedQueue
 
 class LLMAccessibilityService : AccessibilityService() {
@@ -104,34 +103,55 @@ class LLMAccessibilityService : AccessibilityService() {
 
             // --- DUPLICATE ACTION PREVENTION ---
             val nodeId = getNodeIdentifier(node)
-            Log.d(TAG, "processQueue: NodeInfo: $node")
-            if (processedNodeIds.contains(nodeId)) {
-                Log.d(TAG, "Skipping already processed node: $nodeId")
-                // We still need to process its children, so don't 'continue' here,
-                // but we will not perform an action on THIS node again.
+            val llmAccessibilityNodeInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                LLMAccessibilityNodeInfo(
+                    node.packageName,
+                    node.className,
+                    node.viewIdResourceName,
+                    node.contentDescription,
+                    node.text,
+                    node.hintText,
+                    node.actionList
+                    )
             } else {
-                // --- ACTION LOGIC ---
-                // Only consider taking an action if the node hasn't been processed.
-                if (isSearchBar(node)) {
-                    Log.d(TAG, "Search bar found: $nodeId")
-                    if (node.className == "android.widget.Button") {
-//                        if (node.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
-//                            Log.i(TAG, "Successfully clicked button: $nodeId")
-//                            processedNodeIds.add(nodeId) // Mark as processed
-//                        }
-                    } else if (node.className == "android.widget.EditText") {
-                        val success = performSearchAction(node, "Biryani") // Corrected typo
-                        if (success) {
-                            Log.i(TAG, "Search action successful for node: $nodeId. Halting further searches.")
-                            processedNodeIds.add(nodeId) // Mark as processed
-                            // Since a search was successful, you might want to stop all further actions on this screen.
-                            // To do that, clear the queue.
-                            nodeQueue.clear()
-                            break // Exit the while loop
-                        }
-                    }
-                }
+                LLMAccessibilityNodeInfo(
+                    node.packageName,
+                    node.className,
+                    node.viewIdResourceName,
+                    node.contentDescription,
+                    node.text,
+                    "",
+                    node.actionList
+                )
             }
+            Log.d(TAG, "$llmAccessibilityNodeInfo")
+//            if (processedNodeIds.contains(nodeId)) {
+//                Log.d(TAG, "Skipping already processed node: $nodeId")
+//                // We still need to process its children, so don't 'continue' here,
+//                // but we will not perform an action on THIS node again.
+//            } else {
+//                // --- ACTION LOGIC ---
+//                // Only consider taking an action if the node hasn't been processed.
+//                if (isSearchBar(node)) {
+//                    Log.d(TAG, "Search bar found: $nodeId")
+//                    if (node.className == "android.widget.Button") {
+////                        if (node.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+////                            Log.i(TAG, "Successfully clicked button: $nodeId")
+////                            processedNodeIds.add(nodeId) // Mark as processed
+////                        }
+//                    } else if (node.className == "android.widget.EditText") {
+//                        val success = performSearchAction(node, "Biryani") // Corrected typo
+//                        if (success) {
+//                            Log.i(TAG, "Search action successful for node: $nodeId. Halting further searches.")
+//                            processedNodeIds.add(nodeId) // Mark as processed
+//                            // Since a search was successful, you might want to stop all further actions on this screen.
+//                            // To do that, clear the queue.
+//                            nodeQueue.clear()
+//                            break // Exit the while loop
+//                        }
+//                    }
+//                }
+//            }
 
             // --- TRAVERSAL LOGIC ---
             // Add children to the queue for processing, regardless of whether we acted on the parent.
