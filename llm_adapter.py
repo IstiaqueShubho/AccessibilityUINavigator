@@ -29,20 +29,18 @@ class LLMAdapter:
         return self._local_mock(prompt)
 
     def _openai_complete(self, prompt: str, params: Dict[str, Any]) -> Dict[str, Any]:
-         return {"source": "openai", "model": "gpt-oss-120B", "text": "Text summarized by gpt-oss-120B model."}
-        
-        # model = params.get("model", "gpt-3.5-turbo")
-        # try:
-        #     resp = openai.ChatCompletion.create(
-        #         model=model,
-        #         messages=[{"role": "user", "content": prompt}],
-        #         max_tokens=params.get("max_tokens", 512),
-        #         temperature=params.get("temperature", 0.2),
-        #     )
-        #     text = resp.choices[0].message.content.strip()
-        #     return {"source": "openai", "model": model, "text": text}
-        # except Exception as e:
-        #     return {"error": str(e)}
+        model = params.get("model", "gpt-3.5-turbo")
+        try:
+            resp = openai.ChatCompletion.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=params.get("max_tokens", 512),
+                temperature=params.get("temperature", 0.2),
+            )
+            text = resp.choices[0].message.content.strip()
+            return {"source": "openai", "model": model, "text": text}
+        except Exception as e:
+            return {"error": str(e)}
 
     def _local_mock(self, prompt: str) -> Dict[str, Any]:
         """Very small local 'reasoning' fallback used when no API key is present.

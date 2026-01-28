@@ -17,6 +17,12 @@ def health():
     return jsonify({"status": "ok"})
 
 
+@app.route("/", methods=["POST"])
+def root_post():
+    """Handle POST to root path - alias for /invoke"""
+    return invoke()
+
+
 @app.route("/register_callback", methods=["POST"])
 def register_callback():
     data = request.get_json(force=True)
