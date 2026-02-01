@@ -100,7 +100,7 @@ fun Main(context: Context, modifier: Modifier) {
                 scope.launch {
                     LLMHelper.callLLM(task.text.toString())
                     task.clearText()
-                    LLMHelper.openApplication(context)
+//                    LLMHelper.openApplication(context)
                 }
             }) {
                 Text("Submit")
