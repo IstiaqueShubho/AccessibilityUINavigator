@@ -1,5 +1,6 @@
 package com.android.accessibilityuinavigator
 
+
 import android.util.Log
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
@@ -11,11 +12,17 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.internal.concurrent.Task
+import okio.Timeout
+import java.sql.Time
+import java.util.concurrent.TimeUnit
 
 
 class LLMImplementation(private val serverUrl: String) {
 
-    private val client = OkHttpClient()
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(0, TimeUnit.MILLISECONDS)
+        .readTimeout(0, TimeUnit.MILLISECONDS)
+        .build()
     private val gson = Gson()
     private val TAG = "LLMImplementation"
 
@@ -24,11 +31,11 @@ class LLMImplementation(private val serverUrl: String) {
             val json = gson.toJson(mapOf("task" to task))
             val body = RequestBody.create("application/json".toMediaTypeOrNull(), json)
             val request = Request.Builder()
-                .url(serverUrl)
+                .url("$serverUrl/invoke")
                 .post(body)
                 .addHeader("Content-Type", "application/json")
                 .build()
-
+            client.connectTimeoutMillis
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
                 response.body?.string().let {
@@ -61,7 +68,6 @@ class LLMImplementation(private val serverUrl: String) {
             false
         }
     }
-
 }
 
 

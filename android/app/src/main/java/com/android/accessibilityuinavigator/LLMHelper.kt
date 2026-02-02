@@ -11,13 +11,13 @@ object LLMHelper {
     private const val TAG = "LLMHelper"
     private const val SERVER_URL = "http://192.168.1.101:8000"
 
-    suspend fun callLLM(task: String) {
+    suspend fun callLLM(task: String): Map<String, Any>? {
         Log.i(TAG, "callLLM: $task")
         val client = LLMImplementation(SERVER_URL)
         val isHealthy = client.checkHealth()
         if (!isHealthy) {
             Log.e(TAG, "Server not reachable")
-            return
+            return mapOf("error" to "Server not reachable")
         }
 
         // Make a synchronous call - waits for result
@@ -26,6 +26,7 @@ object LLMHelper {
             Log.i(TAG, "Result: ${response.result}")
         }
         Log.i(TAG, "callLLM: $response")
+        return response?.result
 
     }
 

@@ -1,12 +1,17 @@
 import os
 import time
 from typing import Any, Dict
+import openai
+from reAct import ReActAgent
+from promptBuilder import PromptBuilder
+from tools import Tool
 
 try:
     import openai
 except Exception:
     openai = None
 
+os.environ["OPENROUTER_API_KEY"] = ""
 
 class LLMAdapter:
     """Simple adapter that prefers OpenAI (if configured) and otherwise falls back
@@ -18,27 +23,40 @@ class LLMAdapter:
     """
 
     def __init__(self):
-        self.api_key = os.environ.get("OPENAI_API_KEY")
+        self.api_key = os.environ.get("OPENROUTER_API_KEY")
         if openai and self.api_key:
-            openai.api_key = self.api_key
-
+            self.client = openai.OpenAI(base_url="https://openrouter.ai/api/v1", api_key=os.getenv("OPENROUTER_API_KEY"),)
+        else:
+            self.client = None
+        if self.client:
+            self.reAct = ReActAgent(self.client, PromptBuilder().system, Tool().tools)
+        else:
+            self.reAct = None
     def complete(self, prompt: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
         params = params or {}
-        if openai and self.api_key:
+        if self.client and self.api_key and self.reAct:
             return self._openai_complete(prompt, params)
         return self._local_mock(prompt)
 
     def _openai_complete(self, prompt: str, params: Dict[str, Any]) -> Dict[str, Any]:
-        model = params.get("model", "gpt-3.5-turbo")
         try:
-            resp = openai.ChatCompletion.create(
+            resp = self.reAct.run(prompt)
+            print("Response: ", resp)
+            return resp
+        except Exception as e:
+            return {"error" : str(e)}
+        
+        model = params.get("model", "openai/gpt-oss-120b:free")
+        try:
+            resp = self.client.chat.completions.create(
                 model=model,
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=params.get("max_tokens", 512),
                 temperature=params.get("temperature", 0.2),
             )
             text = resp.choices[0].message.content.strip()
-            return {"source": "openai", "model": model, "text": text}
+            print("Response: " + text)
+            return {"source": "openrouter", "model": model, "text": text}
         except Exception as e:
             return {"error": str(e)}
 

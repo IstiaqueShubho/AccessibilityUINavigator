@@ -37,6 +37,7 @@ def register_callback():
 @app.route("/invoke", methods=["POST"])
 def invoke():
     """Synchronous model invocation. Returns result immediately."""
+    print("Received /invoke request")
     data = request.get_json(force=True)
     print(data)
     task = data.get("task")
