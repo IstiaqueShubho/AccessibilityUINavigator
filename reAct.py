@@ -17,70 +17,78 @@ class ReActAgent:
         completion = self.client.responses.create(
             model="openai/gpt-oss-120b:free",
             input=self.messages,
-            reasoning={"effort": "medium"},
-            extra_body={"reasoning": {"enabled": True}}
+            tools=self.tools,
         )
-        return completion.output_text
+        # print(f"response: {completion.output}")
+        return completion
 
 
     def run(self, query: str):
         # Adds user query to the conversation history
         self.messages.append({"role": "user", "content": query})
 
-        for _ in range(self.max_iterations):
-            # Each response can be a thought, an action or an answer
-            response = self._get_completion()
-            print(f"Agent: {response}")
-            # Let's try to find whether the response contains any action
-            input_list += response.output
-            final_answer = False
-            for item in response.output:
-                if item.type == "function_call":
-                    if item.name == "take_action":
-                        # 3. Execute the function logic for take_action
-                        result = take_action(**json.loads(item.arguments))
-                        
-                        # 4. Provide function call results to the model
-                        input_list.append({
-                            "type": "function_call_output",
-                            "call_id": item.call_id,
-                            "output": json.dumps({
-                                "newNodeTree": result
-                            })
+        # Each response can be a thought, an action or an answer
+        response = self._get_completion()
+        print(f"Agent: {response.output}")
+        # Let's try to find whether the response contains any action
+        final_answer = False
+        for item in response.output:
+            print(f"item: {item}")
+            if item.type == "function_call":
+
+                return {
+                    "type": f"{item.type}",
+                    "call_id": f"{item.call_id}",
+                    "name": f"{item.name}",
+                    "args": f"{item.arguments}"
+                }
+
+                if item.name == "take_action":
+                    # 3. Execute the function logic for take_action
+
+                    result = take_action(**json.loads(item.arguments))
+                    
+                    # 4. Provide function call results to the model
+                    input_list.append({
+                        "type": "function_call_output",
+                        "call_id": item.call_id,
+                        "output": json.dumps({
+                            "newNodeTree": result
                         })
-                    elif item.name == "open_application":
-                        # 3. Execute the function logic for open_application
-                        result = open_application(json.loads(item.arguments))
-                        
-                        # 4. Provide function call results to the model
-                        input_list.append({
-                            "type": "function_call_output",
-                            "call_id": item.call_id,
-                            "output": json.dumps({
-                                "newNodeTree": result
-                            })
+                    })
+                elif item.name == "open_application":
+                    # 3. Execute the function logic for open_application
+                    result = open_application(json.loads(item.arguments))
+                    
+                    # 4. Provide function call results to the model
+                    input_list.append({
+                        "type": "function_call_output",
+                        "call_id": item.call_id,
+                        "output": json.dumps({
+                            "newNodeTree": result
                         })
-                    elif item.name == "input_text":
-                        # 3. Execute the function logic for input_text
-                        result = input_text(**json.loads(item.arguments))
-                        
-                        # 4. Provide function call results to the model
-                        input_list.append({
-                            "type": "function_call_output",
-                            "call_id": item.call_id,
-                            "output": json.dumps({
-                                "newNodeTree": result
-                            })
+                    })
+                elif item.name == "input_text":
+                    # 3. Execute the function logic for input_text
+                    result = input_text(**json.loads(item.arguments))
+                    
+                    # 4. Provide function call results to the model
+                    input_list.append({
+                        "type": "function_call_output",
+                        "call_id": item.call_id,
+                        "output": json.dumps({
+                            "newNodeTree": result
                         })
-                elif item.type == "message":
-                    final_answer = True
-                    break
-            cnt += 1
-            # print(input_list)
-    
-            if final_answer:
-                print(response.output_text)
+                    })
+            elif item.type == "message":
+                final_answer = True
                 break
+        cnt += 1
+        # print(input_list)
+
+        if final_answer:
+            print(response.output_text)
+            return response.output_text
 
         return "Max iterations reached without finding an answer."
 

@@ -9,65 +9,63 @@
 
 class Tool:
     def __init__(self):
-        self.tools = self.list_of_tools
+        self.tools = tools
 
-    def list_of_tools(self):
-        tools = [
-            {
-                "type": "function",
-                "name": "open_application",
-                "description": "Open an application on the mobile device",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "appName": {
-                            "type": "string",
-                            "description": "Name of the application to open"
-                        }
-                    },
-                    "required": ["appName"],
+tools = [
+    {
+        "type": "function",
+        "name": "open_application",
+        "description": "Open an application on the mobile device",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "appName": {
+                    "type": "string",
+                    "description": "Name of the application to open"
                 }
             },
-            {
-                "type": "function",
-                "name": "take_action",
-                "description": "Take an action on a node in the accessibility tree",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "nodeInfo": {
-                            "type": "string",
-                            "description": "Node information for the action"
-                        },
-                        "actionType": {
-                            "type": "string",
-                            "description": "Type of action to perform (e.g., 'click', 'scroll', 'double tap')"
-                        }
-                    },
-                    "required": ["nodeInfo", "actionType"],
+            "required": ["appName"],
+        }
+    },
+    {
+        "type": "function",
+        "name": "take_action",
+        "description": "Take an action on a node in the accessibility tree",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "nodeInfo": {
+                    "type": "string",
+                    "description": "Node information for the action"
+                },
+                "actionType": {
+                    "type": "string",
+                    "description": "Type of action to perform (e.g., 'click', 'scroll', 'double tap')"
                 }
             },
-            {
-                "type": "function",
-                "name": "input_text",
-                "description": "Input text into a text field in the accessibility tree",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "nodeInfo": {
-                            "type": "string",
-                            "description": "Node information for the text field"
-                        },
-                        "text": {
-                            "type": "string",
-                            "description": "Text to input into the text field"
-                        }
-                    },
-                    "required": ["nodeInfo", "text"],
+            "required": ["nodeInfo", "actionType"],
+        }
+    },
+    {
+        "type": "function",
+        "name": "input_text",
+        "description": "Input text into a text field in the accessibility tree",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "nodeInfo": {
+                    "type": "string",
+                    "description": "Node information for the text field"
+                },
+                "text": {
+                    "type": "string",
+                    "description": "Text to input into the text field"
                 }
-            }
-        ]
-        return tools
+            },
+            "required": ["nodeInfo", "text"],
+        }
+    }
+]
 
 
 

@@ -98,7 +98,16 @@ fun Main(context: Context, modifier: Modifier) {
                 Toast.makeText(context, task.text, Toast.LENGTH_SHORT).show()
                 loading = true
                 scope.launch {
-                    LLMHelper.callLLM(task.text.toString())
+                    val response = LLMHelper.callLLM(task.text.toString())
+                    if (response != null) {
+                        loading = false
+                        response.forEach { (key, value) ->
+                            Log.i("MainActivity", "$key: $value")
+                            if (key == "name" && value == "open_application") {
+                                LLMHelper.openApplication(context)
+                            }
+                        }
+                    }
                     task.clearText()
 //                    LLMHelper.openApplication(context)
                 }

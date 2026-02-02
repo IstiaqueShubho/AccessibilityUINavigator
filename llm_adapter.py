@@ -2,6 +2,9 @@ import os
 import time
 from typing import Any, Dict
 import openai
+from reAct import ReActAgent
+from promptBuilder import PromptBuilder
+from tools import Tool
 
 try:
     import openai
@@ -25,13 +28,24 @@ class LLMAdapter:
             self.client = openai.OpenAI(base_url="https://openrouter.ai/api/v1", api_key=os.getenv("OPENROUTER_API_KEY"),)
         else:
             self.client = None
+        if self.client:
+            self.reAct = ReActAgent(self.client, PromptBuilder().system, Tool().tools)
+        else:
+            self.reAct = None
     def complete(self, prompt: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
         params = params or {}
-        if self.client and self.api_key:
+        if self.client and self.api_key and self.reAct:
             return self._openai_complete(prompt, params)
         return self._local_mock(prompt)
 
     def _openai_complete(self, prompt: str, params: Dict[str, Any]) -> Dict[str, Any]:
+        try:
+            resp = self.reAct.run(prompt)
+            print("Response: ", resp)
+            return resp
+        except Exception as e:
+            return {"error" : str(e)}
+        
         model = params.get("model", "openai/gpt-oss-120b:free")
         try:
             resp = self.client.chat.completions.create(
